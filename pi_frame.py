@@ -53,6 +53,10 @@ class PiFrameConfig:
         self._execution_pause = os.getenv(self._ENV_VAR_EXECUTION_PAUSE_SECS, 1)
         self._detect_change_pause = os.getenv(self._ENV_VAR_DETECT_CHANGE_PAUSE_SECS, 30)
 
+        log.info(f"usb_mount_point = '{self.usb_mount_point}'; usb_storage_file = '{self.usb_storage_file}'; "
+                 f"change_timeout = '{self.change_timeout}'; execution_pause = '{self.execution_pause}'; "
+                 f"detect_change_pause = '{self.detect_change_pause}'")
+
     def _value_present(self, env_var_value: str, env_var_name: str) -> None:
         if not env_var_value or not env_var_value.strip():
             log.error(f"Missing config for {env_var_name}. Please check pi_frame.conf")
