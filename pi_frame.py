@@ -2,6 +2,7 @@
 
 import os
 import time
+import traceback
 
 from watchdog.observers import Observer
 from watchdog.events import DirDeletedEvent, DirMovedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent, \
@@ -130,7 +131,9 @@ def run():
 
             log.info(f"Pausing change detection for {config.detect_change_pause}s")
             time.sleep(config.detect_change_pause)
-    except KeyboardInterrupt:
+    except Exception as error:
+        log.warn(error)
+        traceback.print_exc()
         log.warn("Change detection interrupted - stopping...")
         observer.stop()
 
