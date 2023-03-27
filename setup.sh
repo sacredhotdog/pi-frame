@@ -11,11 +11,11 @@ fi
 
 CURRENT_USER="$(logname)"
 
-su -c "sudo apt-get install python3-virtualenv" ${CURRENT_USER}
+su -c "sudo apt-get install virtualenv -y" ${CURRENT_USER}
 su -c "virtualenv -p python3 venv" ${CURRENT_USER}
-su -c "source venv/bin/activate && pip install -r requirements.txt" ${CURRENT_USER}
+su -c "source venv/bin/activate && python -m pip install --upgrade pip && pip install -r requirements.txt" ${CURRENT_USER}
 
-source pi_frame.conf
+source ./pi_frame.conf
 CURRENT_WORKING_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 
@@ -23,13 +23,13 @@ CURRENT_WORKING_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2
 
 if [[ -e "$PI_FRAME_INSTALLATION_DIRECTORY" && -h "$PI_FRAME_INSTALLATION_DIRECTORY" ]]
 then
-  unlink ${$PI_FRAME_INSTALLATION_DIRECTORY}
+  unlink ${PI_FRAME_INSTALLATION_DIRECTORY}
 fi
 
-ln -s ${CURRENT_WORKING_DIRECTORY} ${$PI_FRAME_INSTALLATION_DIRECTORY}
+ln -s ${CURRENT_WORKING_DIRECTORY} ${PI_FRAME_INSTALLATION_DIRECTORY}
 
 # Ensure that permissions are correct
-chown -h ${CURRENT_USER}:${CURRENT_USER} ${$PI_FRAME_INSTALLATION_DIRECTORY}
+chown -h ${CURRENT_USER}:${CURRENT_USER} ${PI_FRAME_INSTALLATION_DIRECTORY}
 
 
 ## Logging
