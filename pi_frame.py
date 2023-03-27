@@ -8,22 +8,23 @@ from watchdog.events import DirDeletedEvent, DirMovedEvent, FileDeletedEvent, Fi
     FileSystemEventHandler
 
 import log
+from pi_frame_config import PiFrameConfig
 
 
 class ChangeHandler(FileSystemEventHandler):
 
     def __init__(self):
         self.reset()
+        self._valid_events = [DirDeletedEvent, DirMovedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent]
 
     def on_any_event(self, event):
         log.debug(f"ChangeHandler: change detected [{event}]")
 
-        if type(event) in [DirDeletedEvent, DirMovedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent]:
+        if type(event) in self._valid_events:
             self._changed = True
             self._time_of_change = time.time()
         else:
-            log.debug(f"Ineligible change, ignoring. Not one of "
-                      f"[DirDeletedEvent, DirMovedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent]")
+            log.debug(f"Ineligible change, ignoring. Not one of {self._valid_events}")
 
     def reset(self):
         log.debug("ChangeHandler.reset() called")
@@ -37,56 +38,6 @@ class ChangeHandler(FileSystemEventHandler):
     @property
     def time_of_change(self):
         return self._time_of_change
-
-
-class PiFrameConfig:
-
-    _ENV_VAR_USB_MOUNT_POINT = "PI_FRAME_USB_MOUNT_POINT"
-    _ENV_VAR_USB_STORAGE_FILE = "PI_FRAME_USB_STORAGE_FILE"
-
-    _ENV_VAR_CHANGE_TIMEOUT_SECS = "PI_FRAME_CHANGE_TIMEOUT_SECS"
-    _ENV_VAR_EXECUTION_PAUSE_SECS = "PI_FRAME_EXECUTION_PAUSE_SECS"
-    _ENV_VAR_DETECT_CHANGE_PAUSE_SECS = "PI_FRAME_DETECT_CHANGE_PAUSE_SECS"
-
-    def __init__(self):
-        self._usb_mount_point = os.getenv(self._ENV_VAR_USB_MOUNT_POINT)
-        self._value_present(self._usb_mount_point, self._ENV_VAR_USB_MOUNT_POINT)
-
-        self._usb_storage_file = os.getenv(self._ENV_VAR_USB_STORAGE_FILE)
-        self._value_present(self._usb_storage_file, self._ENV_VAR_USB_STORAGE_FILE)
-
-        self._change_timeout = int(os.getenv(self._ENV_VAR_CHANGE_TIMEOUT_SECS, 30))
-        self._execution_pause = int(os.getenv(self._ENV_VAR_EXECUTION_PAUSE_SECS, 1))
-        self._detect_change_pause = int(os.getenv(self._ENV_VAR_DETECT_CHANGE_PAUSE_SECS, 30))
-
-        log.info(f"usb_mount_point = '{self.usb_mount_point}'; usb_storage_file = '{self.usb_storage_file}'; "
-                 f"change_timeout = '{self.change_timeout}'; execution_pause = '{self.execution_pause}'; "
-                 f"detect_change_pause = '{self.detect_change_pause}'")
-
-    def _value_present(self, env_var_value: str, env_var_name: str) -> None:
-        if not env_var_value or not env_var_value.strip():
-            log.error(f"Missing config for {env_var_name}. Please check pi_frame.conf")
-            raise ValueError
-
-    @property
-    def usb_mount_point(self) -> str:
-        return self._usb_mount_point
-
-    @property
-    def usb_storage_file(self) -> str:
-        return self._usb_storage_file
-
-    @property
-    def change_timeout(self) -> int:
-        return self._change_timeout
-
-    @property
-    def execution_pause(self) -> int:
-        return self._execution_pause
-
-    @property
-    def detect_change_pause(self) -> int:
-        return self._detect_change_pause
 
 
 def run():
@@ -111,11 +62,10 @@ def run():
         while True:
             while event_handler.changed:
                 time_out = time.time() - event_handler.time_of_change
-                log.info("File change detected")
                 log.debug(f"Time elapsed = {time_out}s; timeout limit = {config.change_timeout}s")
 
                 if time_out >= config.change_timeout:
-                    log.info(f"Triggering USB refresh")
+                    log.info(f"File change detected, triggering USB refresh")
                     os.system(command_disable_usb_storage)
                     time.sleep(config.execution_pause)
                     os.system(command_sync_file_changes)
@@ -130,7 +80,7 @@ def run():
             log.debug(f"Pausing change detection for {config.detect_change_pause}s")
             time.sleep(config.detect_change_pause)
     except Exception as error:
-        log.warn(error)
+        log.error(error)
         log.warn("Change detection interrupted - stopping")
         observer.stop()
 
