@@ -13,7 +13,7 @@ CURRENT_USER="$(logname)"
 
 su -c "sudo apt-get install virtualenv -y" ${CURRENT_USER}
 su -c "virtualenv -p python3 venv" ${CURRENT_USER}
-su -c "source venv/bin/activate && python -m pip install --upgrade pip && pip install -r requirements.txt" ${CURRENT_USER}
+su -c "source venv/bin/activate && pip install -r requirements.txt" ${CURRENT_USER}
 
 source ./pi_frame.conf
 CURRENT_WORKING_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -73,6 +73,8 @@ Type=simple
 User=${CURRENT_USER}
 Group=${CURRENT_USER}
 Environment="PI_FRAME_LOG_FILE=${PI_FRAME_LOGGING_DIRECTORY}/pi-frame.log"
+Environment="PI_FRAME_USB_MOUNT_POINT=${PI_FRAME_USB_MOUNT_POINT}"
+Environment="PI_FRAME_USB_STORAGE_FILE=${PI_FRAME_USB_STORAGE_FILE}"
 Environment="PI_FRAME_CHANGE_TIMEOUT_SECS=${PI_FRAME_CHANGE_TIMEOUT_SECS}"
 Environment="PI_FRAME_COMMAND_SLEEP_SECS=${PI_FRAME_COMMAND_SLEEP_SECS}"
 Environment="PI_FRAME_CHANGE_PAUSE_SECS=${PI_FRAME_CHANGE_PAUSE_SECS}"
