@@ -86,8 +86,8 @@ class PiFrameConfig:
 def run():
     config = PiFrameConfig()
     command_sync_file_changes = "sync"
-    command_disable_usb_storage = "modprobe -r g_mass_storage"
-    command_enable_usb_storage = f"modprobe g_mass_storage file={config.usb_storage_file} stall=0 ro=1"
+    command_disable_usb_storage = "sudo modprobe -r g_mass_storage"
+    command_enable_usb_storage = f"sudo modprobe g_mass_storage file={config.usb_storage_file} stall=0 ro=1"
 
     log.info("Activating USB storage...")
     os.system(command_sync_file_changes)
