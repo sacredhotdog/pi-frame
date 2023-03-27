@@ -56,9 +56,9 @@ class PiFrameConfig:
         self._usb_storage_file = os.getenv(self._ENV_VAR_USB_STORAGE_FILE)
         self._value_present(self._usb_storage_file, self._ENV_VAR_USB_STORAGE_FILE)
 
-        self._change_timeout = os.getenv(self._ENV_VAR_CHANGE_TIMEOUT_SECS, 30)
-        self._execution_pause = os.getenv(self._ENV_VAR_EXECUTION_PAUSE_SECS, 1)
-        self._detect_change_pause = os.getenv(self._ENV_VAR_DETECT_CHANGE_PAUSE_SECS, 30)
+        self._change_timeout = int(os.getenv(self._ENV_VAR_CHANGE_TIMEOUT_SECS, 30))
+        self._execution_pause = int(os.getenv(self._ENV_VAR_EXECUTION_PAUSE_SECS, 1))
+        self._detect_change_pause = int(os.getenv(self._ENV_VAR_DETECT_CHANGE_PAUSE_SECS, 30))
 
         log.info(f"usb_mount_point = '{self.usb_mount_point}'; usb_storage_file = '{self.usb_storage_file}'; "
                  f"change_timeout = '{self.change_timeout}'; execution_pause = '{self.execution_pause}'; "
