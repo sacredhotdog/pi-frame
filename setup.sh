@@ -9,14 +9,24 @@ then
 fi
 
 
+source ./pi_frame.conf
+
+PI_FRAME_SERVICE_NAME="pi-frame.service"
+PI_FRAME_SERVICE_PATH="/etc/systemd/system/${PI_FRAME_SERVICE_NAME}"
+PI_FRAME_SERVICE_ENTRY_POINT="pi_frame.py"
+
 CURRENT_USER="$(logname)"
+CURRENT_WORKING_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
+
+## Set up virtualenv and dependencies
+
+# First make sure that any previous installations are not running to avoid file locks
+systemctl stop ${PI_FRAME_SERVICE_NAME}
 
 su -c "sudo apt-get install virtualenv -y" ${CURRENT_USER}
 su -c "virtualenv -p python3 venv" ${CURRENT_USER}
 su -c "source venv/bin/activate && pip install -r requirements.txt" ${CURRENT_USER}
-
-source ./pi_frame.conf
-CURRENT_WORKING_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 
 ## 'Installation' location
@@ -52,13 +62,6 @@ LOGGING_POLICY
 
 
 ## pi-frame service
-
-PI_FRAME_SERVICE_NAME="pi-frame.service"
-PI_FRAME_SERVICE_PATH="/etc/systemd/system/${PI_FRAME_SERVICE_NAME}"
-PI_FRAME_SERVICE_ENTRY_POINT="pi_frame.py"
-
-# Make sure that any previous installations are not running
-systemctl stop ${PI_FRAME_SERVICE_NAME}
 
 # systemctl service definition
 cat > ${PI_FRAME_SERVICE_PATH} <<SERVICE_DEFINITION
