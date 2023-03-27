@@ -2,7 +2,6 @@
 
 import os
 import time
-import traceback
 
 from watchdog.observers import Observer
 from watchdog.events import DirDeletedEvent, DirMovedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent, \
@@ -17,17 +16,17 @@ class ChangeHandler(FileSystemEventHandler):
         self.reset()
 
     def on_any_event(self, event):
-        log.info(f"ChangeHandler: change detected [{event}]")
+        log.debug(f"ChangeHandler: change detected [{event}]")
 
         if type(event) in [DirDeletedEvent, DirMovedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent]:
             self._changed = True
             self._time_of_change = time.time()
         else:
-            log.warn(f"Ineligible change, ignoring. "
-                     f"Not one of [DirDeletedEvent, DirMovedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent]")
+            log.debug(f"Ineligible change, ignoring. Not one of "
+                      f"[DirDeletedEvent, DirMovedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent]")
 
     def reset(self):
-        log.info("ChangeHandler: reset() called")
+        log.debug("ChangeHandler.reset() called")
         self._changed = False
         self._time_of_change = 0
 
@@ -112,33 +111,31 @@ def run():
         while True:
             while event_handler.changed:
                 time_out = time.time() - event_handler.time_of_change
-                log.warn("Change detected...")
-                log.info(f"Change timestamp: {event_handler.time_of_change}")
-                log.info(f"Current timeout = {time_out}; timeout limit = {config.change_timeout}...")
+                log.info("File change detected")
+                log.debug(f"Time elapsed = {time_out}s; timeout limit = {config.change_timeout}s")
 
                 if time_out >= config.change_timeout:
-                    log.info(f"File change detected at {event_handler.time_of_change} - triggering USB refresh...")
+                    log.info(f"Triggering USB refresh")
                     os.system(command_disable_usb_storage)
                     time.sleep(config.execution_pause)
                     os.system(command_sync_file_changes)
                     time.sleep(config.execution_pause)
                     os.system(command_enable_usb_storage)
                     event_handler.reset()
-                    log.info(f"USB refresh complete.")
+                    log.info(f"USB refresh complete")
 
-                log.info(f"Pausing execution for {config.execution_pause}s")
+                log.debug(f"Pausing execution for {config.execution_pause}s")
                 time.sleep(config.execution_pause)
 
-            log.info(f"Pausing change detection for {config.detect_change_pause}s")
+            log.debug(f"Pausing change detection for {config.detect_change_pause}s")
             time.sleep(config.detect_change_pause)
     except Exception as error:
         log.warn(error)
-        traceback.print_exc()
-        log.warn("Change detection interrupted - stopping...")
+        log.warn("Change detection interrupted - stopping")
         observer.stop()
 
-    log.warn("Calling observer.join()...")
     observer.join()
+    log.warn("Stopped")
 
 
 if __name__ == "__main__":

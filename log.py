@@ -6,6 +6,10 @@ _LOG_FILE = os.getenv("PI_FRAME_LOG_FILE")
 _LOG_FORMAT = "%(asctime)s %(levelname)s %(message)s"
 
 
+def debug(log_message):
+    logging.debug(log_message)
+
+
 def info(log_message):
     logging.info(log_message)
 
