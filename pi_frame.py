@@ -16,11 +16,17 @@ class ChangeHandler(FileSystemEventHandler):
         self.reset()
 
     def on_any_event(self, event):
+        log.info(f"ChangeHandler: change detected [{event}]")
+
         if type(event) in [DirDeletedEvent, DirMovedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent]:
             self._changed = True
             self._time_of_change = time.time()
+        else:
+            log.warn(f"Ineligible change, ignoring. "
+                     f"Not one of [DirDeletedEvent, DirMovedEvent, FileDeletedEvent, FileModifiedEvent, FileMovedEvent]")
 
     def reset(self):
+        log.info("ChangeHandler: reset() called")
         self._changed = False
         self._time_of_change = 0
 
@@ -105,6 +111,9 @@ def run():
         while True:
             while event_handler.changed:
                 time_out = time.time() - event_handler.time_of_change
+                log.warn("Change detected...")
+                log.info(f"Change timestamp: {event_handler.time_of_change}")
+                log.info(f"Current timeout = {time_out}; timeout limit = {config.change_timeout}...")
 
                 if time_out >= config.change_timeout:
                     log.info(f"File change detected at {event_handler.time_of_change} - triggering USB refresh...")
@@ -116,12 +125,16 @@ def run():
                     event_handler.reset()
                     log.info(f"USB refresh complete.")
 
+                log.info(f"Pausing execution for {config.execution_pause}s")
                 time.sleep(config.execution_pause)
 
+            log.info(f"Pausing change detection for {config.detect_change_pause}s")
             time.sleep(config.detect_change_pause)
     except KeyboardInterrupt:
+        log.warn("Change detection interrupted - stopping...")
         observer.stop()
 
+    log.warn("Calling observer.join()...")
     observer.join()
 
 
